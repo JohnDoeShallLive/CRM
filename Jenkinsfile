@@ -115,15 +115,26 @@ pipeline {
 
 
         stage('Install CRM Application') {
-            steps {
-                echo "🔹 Installing Frappe CRM App..."
-                sh '''
-                cd frappe-bench
-                bench get-app https://github.com/JohnDoeShallLive/CRM.git
-                bench --site ${FRAPPE_SITE_NAME} install-app CRM
-                '''
-            }
-        }
+    steps {
+        echo "🔹 Installing Frappe CRM App..."
+        sh '''
+        cd frappe-bench
+
+        # Ensure we're in the correct environment
+        bash -c "
+        source ../frappe-env/bin/activate
+        which bench || echo '⚠️ Warning: bench command not found'
+        
+        # Get and install the app
+        bench get-app https://github.com/JohnDoeShallLive/CRM.git
+        bench --site ${FRAPPE_SITE_NAME} install-app CRM
+        
+        deactivate
+        "
+        '''
+    }
+}
+
 
         stage('Run Frappe Server') {
             steps {
