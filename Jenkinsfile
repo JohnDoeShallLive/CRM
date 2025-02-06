@@ -17,17 +17,28 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-    steps {
-        echo "🔹 Installing required dependencies..."
-        sh '''
-        sudo apt update && sudo apt install -y \
-        python3-pip python3-dev python3-venv \
-        mariadb-server mariadb-client \
-        redis-server xvfb libfontconfig \
-        wkhtmltopdf curl nodejs npm yarn
-        '''
+        steps {
+            echo "🔹 Installing required dependencies..."
+            sh '''
+            sudo apt update && sudo apt install -y \
+            python3-pip python3-dev python3-venv \
+            mariadb-server mariadb-client \
+            redis-server xvfb libfontconfig \
+            wkhtmltopdf curl nodejs npm yarn
+
+            # Create virtual environment
+            python3 -m venv frappe-env
+            source frappe-env/bin/activate
+
+            # Upgrade pip and install Frappe Bench
+            pip install --upgrade pip
+            pip install frappe-bench
+
+            # Deactivate the virtual environment after installation
+            deactivate
+            '''
+        }
     }
-}
 
 
         stage('Setup MySQL Database') {
