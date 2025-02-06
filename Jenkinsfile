@@ -17,17 +17,18 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                echo "🔹 Installing required dependencies..."
-                sh '''
-                sudo apt update && sudo apt install -y \
-                python3-pip python3-dev python3-venv \
-                mariadb-server mariadb-client \
-                redis-server xvfb libfontconfig \
-                wkhtmltopdf curl nodejs npm yarn
-                '''
-            }
+        steps {
+            echo "🔹 Installing required dependencies..."
+            sh '''
+            echo "your-sudo-password" | sudo -S apt update && sudo -S apt install -y \
+            python3-pip python3-dev python3-venv \
+            mariadb-server mariadb-client \
+            redis-server xvfb libfontconfig \
+            wkhtmltopdf curl nodejs npm yarn
+            '''
         }
+    }
+
 
         stage('Setup MySQL Database') {
             steps {
