@@ -59,18 +59,27 @@ pipeline {
             }
         }
 
-        stage('Setup MySQL Database') {
-            steps {
-                echo "🔹 Setting up MySQL Database..."
-                sh '''
-                sudo systemctl start mariadb
-                sudo mysql -e "CREATE DATABASE frappe_db;"
-                sudo mysql -e "CREATE USER 'frappe'@'localhost' IDENTIFIED BY 'frappe_password';"
-                sudo mysql -e "GRANT ALL PRIVILEGES ON frappe_db.* TO 'frappe'@'localhost';"
-                sudo mysql -e "FLUSH PRIVILEGES;"
-                '''
-            }
-        }
+            stage('Setup MySQL Database') {
+    steps {
+        echo "🔹 Setting up MySQL Database..."
+        sh '''
+        sudo systemctl start mariadb
+
+        # Check if database exists
+        DB_EXISTS=$(sudo mysql -Nse "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name='frappe_db';")
+        if [ "$DB_EXISTS" -eq 0 ]; then
+            echo "Creating database 'frappe_db'..."
+            sudo mysql -e "CREATE DATABASE frappe_db;"
+            sudo mysql -e "CREATE USER 'frappe'@'localhost' IDENTIFIED BY 'frappe_password';"
+            sudo mysql -e "GRANT ALL PRIVILEGES ON frappe_db.* TO 'frappe'@'localhost';"
+            sudo mysql -e "FLUSH PRIVILEGES;"
+        else
+            echo " Database 'frappe_db' already exists. Skipping creation."
+        fi
+        '''
+    }
+}
+
 
         stage('Install Frappe Bench') {
             steps {
