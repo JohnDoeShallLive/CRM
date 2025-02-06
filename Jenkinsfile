@@ -106,7 +106,7 @@ pipeline {
         bash -c "
         source ../frappe-env/bin/activate
         which bench || echo '⚠️ Warning: bench command not found'
-        bench new-site $app --db-name=frappe_db --mariadb-root-password=$123 --admin-password=admin --install-app erpnext
+        bench new-site ${FRAPPE_SITE_NAME} --db-name=frappe_db --mariadb-root-password=${DB_PASSWORD} --admin-password=admin --install-app erpnext
         deactivate
         "
         '''
@@ -127,7 +127,7 @@ pipeline {
         
         # Get and install the app
         bench get-app https://github.com/JohnDoeShallLive/CRM.git
-        bench --site $app install-app CRM
+        bench --site ${FRAPPE_SITE_NAME} install-app CRM
         
         deactivate
         "
@@ -158,7 +158,7 @@ pipeline {
         which bench || echo '⚠️ Warning: bench command not found'
         
         # Run tests with verbose output
-        bench --site $app run-tests || echo '⚠️ Tests failed. Check logs for details.'
+        bench --site ${FRAPPE_SITE_NAME} run-tests || echo '⚠️ Tests failed. Check logs for details.'
         
         deactivate
         "
