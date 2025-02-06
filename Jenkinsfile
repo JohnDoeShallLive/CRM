@@ -17,29 +17,47 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-        steps {
-            echo "🔹 Installing required dependencies..."
-            sh '''
-            sudo apt update && sudo apt install -y \
-            python3-pip python3-dev python3-venv \
-            mariadb-server mariadb-client \
-            redis-server xvfb libfontconfig \
-            wkhtmltopdf curl nodejs npm yarn
+            steps {
+                echo "🔹 Updating and installing required dependencies..."
+                sh '''
+                # Ensure non-interactive mode to avoid prompts
+                export DEBIAN_FRONTEND=noninteractive
 
-            # Create virtual environment
-            python3 -m venv frappe-env
-            source frappe-env/bin/activate
+                # Update and install packages safely
+                sudo apt update && sudo apt upgrade -y
+                sudo apt install -y \
+                python3-pip python3-dev python3-venv \
+                mariadb-server mariadb-client \
+                redis-server xvfb libfontconfig \
+                wkhtmltopdf curl nodejs npm yarn \
+                build-essential libssl-dev libffi-dev \
+                libmysqlclient-dev
 
-            # Upgrade pip and install Frappe Bench
-            pip install --upgrade pip
-            pip install frappe-bench
-
-            # Deactivate the virtual environment after installation
-            deactivate
-            '''
+                # Restart services to ensure they are running
+                sudo systemctl restart mariadb redis
+                '''
+            }
         }
-    }
 
+        stage('Setup Virtual Environment') {
+            steps {
+                echo "🔹 Setting up Python Virtual Environment..."
+                sh '''
+                # Use bash explicitly to avoid 'source: not found' error
+                bash -c "
+                python3 -m venv frappe-env
+                source frappe-env/bin/activate
+
+                # Upgrade pip and install required dependencies
+                pip install --upgrade pip setuptools wheel
+                pip install frappe-bench
+
+                # Deactivate environment
+                deactivate
+                "
+                '''
+            }
+        }
 
         stage('Setup MySQL Database') {
             steps {
@@ -58,8 +76,13 @@ pipeline {
             steps {
                 echo "🔹 Installing Frappe Bench..."
                 sh '''
-                pip3 install frappe-bench
+                # Activate virtual environment before installing Bench
+                bash -c "
+                source frappe-env/bin/activate
+                pip install --upgrade frappe-bench
                 bench init --frappe-branch version-14 frappe-bench
+                deactivate
+                "
                 '''
             }
         }
@@ -90,7 +113,7 @@ pipeline {
                 echo "🔹 Starting Frappe Server..."
                 sh '''
                 cd frappe-bench
-                nohup bench start > frappe.log 2>&1 &
+                nohup bench start > logs/frappe.log 2>&1 &
                 '''
             }
         }
