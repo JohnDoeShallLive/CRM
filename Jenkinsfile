@@ -97,14 +97,22 @@ pipeline {
         }
 
         stage('Create New Frappe Site') {
-            steps {
-                echo "🔹 Creating new Frappe site..."
-                sh '''
-                cd frappe-bench
-                bench new-site ${FRAPPE_SITE_NAME} --db-name=frappe_db --mariadb-root-password=${DB_PASSWORD} --admin-password=admin --install-app erpnext
-                '''
-            }
-        }
+    steps {
+        echo "🔹 Creating new Frappe site..."
+        sh '''
+        cd frappe-bench
+
+        # Ensure we're in the correct environment
+        bash -c "
+        source ../frappe-env/bin/activate
+        which bench || echo '⚠️ Warning: bench command not found'
+        bench new-site ${FRAPPE_SITE_NAME} --db-name=frappe_db --mariadb-root-password=${DB_PASSWORD} --admin-password=admin --install-app erpnext
+        deactivate
+        "
+        '''
+    }
+}
+
 
         stage('Install CRM Application') {
             steps {
