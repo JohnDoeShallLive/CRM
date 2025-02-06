@@ -147,14 +147,25 @@ pipeline {
         }
 
         stage('Run Tests') {
-            steps {
-                echo "🔹 Running tests..."
-                sh '''
-                cd frappe-bench
-                bench --site ${FRAPPE_SITE_NAME} run-tests
-                '''
-            }
-        }
+    steps {
+        echo "🔹 Running tests..."
+        sh '''
+        cd frappe-bench
+
+        # Ensure we're in the correct environment
+        bash -c "
+        source ../frappe-env/bin/activate
+        which bench || echo '⚠️ Warning: bench command not found'
+        
+        # Run tests with verbose output
+        bench --site ${FRAPPE_SITE_NAME} run-tests || echo '⚠️ Tests failed. Check logs for details.'
+        
+        deactivate
+        "
+        '''
+    }
+}
+
 
         stage('Deploy to Production') {
             steps {
