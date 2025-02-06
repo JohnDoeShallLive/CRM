@@ -20,7 +20,7 @@ pipeline {
         steps {
             echo "🔹 Installing required dependencies..."
             sh '''
-            echo "your-sudo-password" | sudo -S apt update && sudo -S apt install -y \
+            echo "shreyash@123" | sudo -S apt update && sudo -S apt install -y \
             python3-pip python3-dev python3-venv \
             mariadb-server mariadb-client \
             redis-server xvfb libfontconfig \
